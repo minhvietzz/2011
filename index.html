@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>20/11 - Tri ân thầy cô</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;600&family=Dancing+Script:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--pink:#ff6fa5;--gold:#ffd27a;--ink:#fff1f6}
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:#05010a;overflow:hidden;font-family:"Be Vietnam Pro",system-ui,sans-serif;color:var(--ink)}
+  canvas{display:block;touch-action:none}
+  .hide{opacity:0!important;pointer-events:none!important;transform:translateY(12px)}
+  .btn{font:600 15px "Be Vietnam Pro",sans-serif;color:#fff;border:1px solid rgba(255,255,255,.28);padding:13px 26px;border-radius:999px;cursor:pointer;
+    background:linear-gradient(135deg,rgba(255,111,165,.85),rgba(190,90,255,.75));backdrop-filter:blur(8px);
+    box-shadow:0 0 28px rgba(255,111,165,.45);transition:.35s;letter-spacing:.02em}
+  .btn:hover{transform:translateY(-2px) scale(1.03);box-shadow:0 0 40px rgba(255,111,165,.75)}
+  .btn.ghost{background:rgba(20,8,30,.55);box-shadow:none}
+  .ui{position:fixed;transition:opacity .6s,transform .6s}
+
+  #intro{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;text-align:center;
+    background:radial-gradient(ellipse at center,rgba(20,4,30,.55),rgba(5,1,10,.92));transition:opacity 1.6s;padding:24px}
+  #intro h1{font:700 clamp(64px,13vw,150px)/1 "Dancing Script",cursive;margin:0;color:#fff;
+    text-shadow:0 0 30px #ff5c93,0 0 80px #ff3b7f}
+  #intro p{margin:0;font-weight:300;font-size:clamp(15px,2vw,20px);letter-spacing:.3em;text-transform:uppercase;color:#ffc2da}
+  #intro .cls{font:600 clamp(20px,3vw,30px) "Dancing Script",cursive;letter-spacing:.04em;text-transform:none;color:var(--gold)}
+  #intro .btn{margin-top:14px;font-size:17px;padding:15px 38px}
+
+  #brand{left:24px;top:20px;font:700 26px "Dancing Script",cursive;text-shadow:0 0 14px #ff3b7f}
+  #brand small{display:block;font:300 11px "Be Vietnam Pro";letter-spacing:.25em;color:#ffc2da;text-transform:uppercase}
+  #sound{right:20px;top:18px;padding:10px 14px}
+  #hint{left:24px;bottom:22px;font-size:12px;color:#d9b7c9;opacity:.8;line-height:1.7}
+  #btnWish{left:50%;bottom:28px;transform:translateX(-50%);font-size:17px;padding:15px 34px}
+  #btnWish:hover{transform:translateX(-50%) translateY(-2px) scale(1.03)}
+  #btnWish.hide{transform:translateX(-50%) translateY(12px)}
+  #btnBack{right:22px;bottom:26px}
+  #card{left:50%;bottom:28px;transform:translateX(-50%);display:flex;align-items:center;gap:16px;
+    background:rgba(20,8,30,.6);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:8px 8px 8px 24px}
+  #card.hide{transform:translateX(-50%) translateY(12px)}
+  #card span{font:600 22px "Dancing Script",cursive;color:var(--gold)}
+
+  #wish{left:50%;bottom:4vh;transform:translateX(-50%);width:min(780px,92vw);padding:26px 32px 22px;text-align:center;
+    background:linear-gradient(180deg,rgba(25,6,36,.55),rgba(25,6,36,.8));backdrop-filter:blur(10px);
+    border:1px solid rgba(255,150,200,.3);border-radius:22px;box-shadow:0 0 60px rgba(255,80,150,.25)}
+  #wish.hide{transform:translateX(-50%) translateY(20px)}
+  #wish h2{font:700 clamp(26px,4vw,40px) "Dancing Script",cursive;margin:0 0 10px;color:#ffb8d4;text-shadow:0 0 16px #ff3b7f}
+  #wish p{margin:0;font-weight:300;font-size:clamp(14px,1.7vw,17px);line-height:1.75;min-height:7.5em}
+  #wish .sign{margin-top:12px;font:600 22px "Dancing Script",cursive;color:var(--gold);min-height:1.4em}
+  @media(max-width:600px){#hint{display:none}#btnBack{right:50%;transform:translateX(50%);bottom:auto;top:70px}#wish{bottom:2vh;padding:18px 18px 14px}}
+</style>
+</head>
+<body>
+
+<div id="intro">
+  <p>Ngày Nhà giáo Việt Nam</p>
+  <h1>20·11</h1>
+  <p class="cls" id="cls"></p>
+  <p>Tri ân thầy cô</p>
+  <button class="btn" id="enter">Bước vào ✦</button>
+</div>
+
+<div id="brand" class="ui hide">20/11 · Tri ân thầy cô<small id="brandSub"></small></div>
+<button id="sound" class="btn ghost ui hide" style="display:none">♪ Nhạc</button>
+<div id="hint" class="ui hide">Kéo chuột để xoay · Cuộn để zoom<br>Chạm vào video để bay tới xem</div>
+<button id="btnWish" class="btn ui hide">💌 Gửi lời chúc</button>
+<button id="btnBack" class="btn ghost ui hide">↩ Quay lại</button>
+<div id="card" class="ui hide"><span id="cardText"></span><button class="btn ghost" id="cardClose">✕ Đóng</button></div>
+<div id="wish" class="ui hide"><h2 id="wTitle"></h2><p id="wBody"></p><div class="sign" id="wSign"></div></div>
+
+<script type="importmap">
+{"imports":{
+  "three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+import {EffectComposer} from 'three/addons/postprocessing/EffectComposer.js';
+import {RenderPass} from 'three/addons/postprocessing/RenderPass.js';
+import {UnrealBloomPass} from 'three/addons/postprocessing/UnrealBloomPass.js';
+import {OutputPass} from 'three/addons/postprocessing/OutputPass.js';
+
+/* ====================== CẤU HÌNH — CHỈ SỬA Ở ĐÂY ====================== */
+const CFG = {
+  cls: 'Lớp 11 Tin',         // tên lớp, hiện ở màn hình đầu
+  // Video / ảnh: bỏ file vào thư mục videos/ rồi khai báo. Có thể là chuỗi hoặc {src, caption}
+  media: [
+    'videos/1.mp4', 'videos/2.mp4', 'videos/3.mp4', 'videos/4.mp4', 'videos/5.mp4',
+    // 'videos/timelapse1.mp4',
+    // {src: 'videos/timelapse2.mp4', caption: 'Một ngày ở lớp'},
+    // {src: 'videos/anh-lop.jpg',    caption: 'Ảnh tập thể'},
+  ],
+  music: 'videos/mz.mp3',               // vd 'music.mp3' (để trống = không nhạc)
+  texts: [
+    '20/11', 'Tri ân thầy cô', 'Cảm ơn thầy cô', 'Chúc mừng ngày Nhà giáo Việt Nam',
+    'Mãi biết ơn', 'Thầy cô luôn mạnh khỏe', 'Người lái đò thầm lặng', 'Công ơn trời biển',
+    "Happy Teachers' Day", 'Love', '❤ ❤ ❤', 'Nhớ mãi những buổi học',
+    'Cảm ơn vì tất cả', '11 Tin thương thầy cô', 'Code bằng cả trái tim', 'Thầy cô là ánh sáng', 'Vì thầy cô, em trưởng thành',
+  ],
+  wish: {
+    title: 'Gửi thầy cô kính yêu,',
+    body: 'Nhân ngày Nhà giáo Việt Nam 20/11, tập thể lớp 11 Tin xin gửi đến thầy cô lời tri ân sâu sắc nhất. ' +
+          'Cảm ơn thầy cô đã kiên nhẫn dìu dắt, đã thắp lên trong chúng em ngọn lửa của tri thức và niềm tin vào chính mình. ' +
+          'Những buổi học, những lời dặn dò của thầy cô sẽ theo chúng em suốt chặng đường phía trước. ' +
+          'Chúc thầy cô luôn mạnh khỏe, hạnh phúc và mãi là người lái đò tuyệt vời của chúng em.',
+    sign: '— Tập thể lớp 11 Tin —',
+  },
+};
+/* ======================================================================= */
+
+const $ = id => document.getElementById(id);
+const rnd = (a, b) => a + Math.random()*(b-a);
+const pick = a => a[Math.floor(Math.random()*a.length)];
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+$('cls').textContent = CFG.cls; $('brandSub').textContent = CFG.cls;
+
+// đợi font (canvas cần font đã tải mới vẽ đúng tiếng Việt)
+try { await Promise.race([Promise.all([
+  document.fonts.load('700 48px "Dancing Script"', 'Tri ân thầy cô ưỡạ'),
+  document.fonts.load('600 40px "Be Vietnam Pro"', 'Tri ân thầy cô')]), sleep(2500)]); } catch {}
+
+/* ---------- renderer / camera / controls / bloom ---------- */
+const renderer = new THREE.WebGLRenderer({antialias: true});
+renderer.setPixelRatio(1); // giữ nhẹ GPU; bloom + hạt cộng sáng rất tốn fill-rate
+renderer.setSize(innerWidth, innerHeight);
+document.body.prepend(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0x05010a, 0.0042);
+const camera = new THREE.PerspectiveCamera(55, innerWidth/innerHeight, 0.1, 1200);
+const GALLERY = {pos: new THREE.Vector3(0, 12, 70), target: new THREE.Vector3(0, 0, 0)};
+camera.position.set(0, 40, 190);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+Object.assign(controls, {enableDamping: true, dampingFactor: .06, minDistance: 14, maxDistance: 160,
+  autoRotate: true, autoRotateSpeed: .35, rotateSpeed: .6, zoomSpeed: .8});
+
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), .55, .5, .8);
+composer.addPass(bloom);
+composer.addPass(new OutputPass());
+
+const U = {uTime: {value: 0}, uProg: {value: 0}, uPx: {value: 1}};
+function onResize() {
+  camera.aspect = innerWidth/innerHeight; camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight); composer.setSize(innerWidth, innerHeight);
+  U.uPx.value = innerHeight*renderer.getPixelRatio()/(2*Math.tan(THREE.MathUtils.degToRad(camera.fov/2)));
+}
+addEventListener('resize', onResize); onResize();
+
+/* ---------- tween nhỏ ---------- */
+const tweens = [], easeIO = t => t<.5 ? 4*t*t*t : 1-Math.pow(-2*t+2, 3)/2, linear = t => t;
+const tween = (ms, fn, {ease = easeIO, delay = 0} = {}) =>
+  new Promise(res => tweens.push({t0: performance.now()+delay, ms, fn, ease, res}));
+async function flyTo(pos, target, ms = 2600) {
+  const p0 = camera.position.clone(), t0 = controls.target.clone();
+  controls.enabled = false;
+  await tween(ms, k => { camera.position.lerpVectors(p0, pos, k); controls.target.lerpVectors(t0, target, k); });
+  controls.enabled = true;
+}
+
+/* ---------- texture phụ ---------- */
+function canvasTex(w, h, draw) {
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  draw(c.getContext('2d'), w, h);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+}
+const glowTex = canvasTex(64, 64, (g, w, h) => {
+  const r = g.createRadialGradient(w/2, h/2, 0, w/2, h/2, w/2);
+  r.addColorStop(0, '#fff'); r.addColorStop(.25, 'rgba(255,200,230,.7)'); r.addColorStop(1, 'rgba(255,120,180,0)');
+  g.fillStyle = r; g.fillRect(0, 0, w, h);
+});
+
+/* ---------- nền: sao + bụi sáng bay lên ---------- */
+{
+  const n = 2500, p = new Float32Array(n*3);
+  for (let i = 0; i < n; i++) {
+    const v = new THREE.Vector3().randomDirection().multiplyScalar(rnd(300, 600)); p.set([v.x, v.y, v.z], i*3);
+  }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(p, 3));
+  scene.add(new THREE.Points(g, new THREE.PointsMaterial({size: 1.6, sizeAttenuation: false, color: 0xcdb8ff, transparent: true, opacity: .7, fog: false, depthWrite: false})));
+}
+const DUST_N = 700, dust = new Float32Array(DUST_N*3);
+for (let i = 0; i < DUST_N; i++) dust.set([rnd(-75, 75), rnd(-40, 40), rnd(-75, 75)], i*3);
+const dustGeo = new THREE.BufferGeometry(); dustGeo.setAttribute('position', new THREE.BufferAttribute(dust, 3));
+const dustPts = new THREE.Points(dustGeo, new THREE.PointsMaterial({size: .8, map: glowTex, color: 0xffd9a8, transparent: true, opacity: .7, depthWrite: false, blending: THREE.AdditiveBlending}));
+scene.add(dustPts);
+
+/* ---------- trái tim hạt: vòng quay → chảy xuống thành tim ---------- */
+const N = 9000, aRing = new Float32Array(N*3), aHeart = new Float32Array(N*3), aRand = new Float32Array(N*4), pos0 = new Float32Array(N*3);
+const HS = 8.2; // kích thước tim
+function heartPoint(shell) { // tim 3D: (x²+9/4y²+z²-1)³ - x²z³ - 9/80y²z³ ≤ 0
+  for (let i = 0; i < 20000; i++) { // giới hạn vòng lặp để không bao giờ treo trang
+    const x = rnd(-1.3, 1.3), y = rnd(-.75, .75), z = rnd(-1.3, 1.4);
+    const f = Math.pow(x*x + 2.25*y*y + z*z - 1, 3) - x*x*z*z*z - .1125*y*y*z*z*z;
+    if (f <= 0 && (!shell || f > -.06)) return [x*HS, z*HS - .3, y*HS*.95];
+  }
+  return [0, 0, 0];
+}
+for (let i = 0; i < N; i++) {
+  const h = heartPoint(i < N*.78); aHeart.set(h, i*3);
+  const R = 15.5 + Math.pow(Math.random(), 1.6)*6;
+  aRing.set([R, rnd(0, Math.PI*2), (Math.random()+Math.random()-1)*.9], i*3);
+  aRand.set([Math.random(), rnd(.45, 1.15), rnd(.12, .32)*(Math.random() < .5 ? 1 : 1), Math.random()], i*4);
+}
+const pg = new THREE.BufferGeometry();
+pg.setAttribute('position', new THREE.BufferAttribute(pos0, 3));
+pg.setAttribute('aRing', new THREE.BufferAttribute(aRing, 3));
+pg.setAttribute('aHeart', new THREE.BufferAttribute(aHeart, 3));
+pg.setAttribute('aRand', new THREE.BufferAttribute(aRand, 4));
+const particles = new THREE.Points(pg, new THREE.ShaderMaterial({
+  uniforms: U, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+  vertexShader: `
+    uniform float uTime, uProg, uPx;
+    attribute vec3 aRing, aHeart; attribute vec4 aRand;
+    varying vec3 vCol;
+    vec2 rot(vec2 p, float a){ float c=cos(a), s=sin(a); return vec2(c*p.x-s*p.y, s*p.x+c*p.y); }
+    void main(){
+      float ang = aRing.y + uTime*aRand.z;                       // hạt chạy dọc viền tròn
+      vec3 rp = vec3(cos(ang)*aRing.x, aRing.z, sin(ang)*aRing.x);
+      rp.yz = rot(rp.yz, .35); rp.y += 11.0;                      // nghiêng vòng, đặt phía trên
+      float t = clamp((uProg - aRand.x*.5)/.5, 0., 1.);
+      float e = t*t*(3.-2.*t);
+      float beat = pow(sin(uTime*2.2)*.5+.5, 8.)*.06;
+      vec3 p = mix(rp, aHeart*(1.+beat*e), e);                    // đi xuống thành tim
+      float arc = sin(e*3.14159265);
+      p.xz += normalize(rp.xz+1e-4)*arc*6.0;                      // vòng cung ra ngoài rồi thu vào
+      p.xz = rot(p.xz, arc*2.2);                                  // xoáy khi rơi
+      p += .16*e*vec3(sin(uTime*1.3+aRand.w*30.), sin(uTime*1.7+aRand.w*50.), cos(uTime*1.1+aRand.w*70.));
+      vec4 mv = modelViewMatrix*vec4(p, 1.);
+      gl_Position = projectionMatrix*mv;
+      gl_PointSize = clamp(aRand.y*uPx/-mv.z, 1., 10.);   // chặn hạt phình to khi camera lại gần (tránh overdraw)
+      vec3 c0 = mix(vec3(1.,.82,.5), vec3(1.,.55,.9), aRand.w);
+      vec3 c1 = mix(vec3(1.,.12,.32), vec3(1.,.5,.72), aRand.w);
+      vCol = mix(c0, c1, e);
+    }`,
+  fragmentShader: `
+    varying vec3 vCol;
+    void main(){ float d=length(gl_PointCoord-.5); if(d>.5) discard; gl_FragColor=vec4(vCol, pow(1.-d*2., 2.)*.4); }`,
+}));
+particles.frustumCulled = false;
+scene.add(particles);
+
+/* ---------- vật thể trong không gian: chữ + video, bay lên ---------- */
+const items = [], cardFronts = [], YMAX = 34;
+let vis = 1; // 1 = hiện ở màn hình thư viện, 0 = ẩn khi xem trái tim
+const PALETTE = ['#ff8fb8', '#ffd27a', '#ffffff', '#9be7ff', '#c9a7ff', '#ff9a8a', '#a6ffcb'];
+
+function textSprite(text, big) {
+  const size = 96, font = `700 ${size}px "Dancing Script","Segoe UI",cursive`;
+  const probe = document.createElement('canvas').getContext('2d'); probe.font = font;
+  const w = Math.ceil(probe.measureText(text).width) + 90, h = size + 90, color = pick(PALETTE);
+  const tex = canvasTex(w, h, g => {
+    g.font = font; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.shadowColor = color; g.shadowBlur = 28; g.fillStyle = color; g.fillText(text, w/2, h/2);
+    g.shadowBlur = 0; g.fillText(text, w/2, h/2);
+  });
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({map: tex, transparent: true, depthWrite: false}));
+  const H = big ? rnd(6, 8) : rnd(2.6, 4.4); s.scale.set(H*w/h, H, 1);
+  return s;
+}
+
+function makeCard(entry, index) {
+  const src = entry?.src ?? entry, caption = entry?.caption ?? '', H = 11;
+  const mv = new THREE.MeshBasicMaterial({transparent: true, fog: false});
+  const mf = new THREE.MeshBasicMaterial({color: 0xc98aa8, transparent: true, side: THREE.DoubleSide, fog: false});
+  const frame = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), mf);
+  const front = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), mv);
+  const back = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), mv);
+  front.position.z = .03; back.position.z = -.03; back.rotation.y = Math.PI;
+  const g = new THREE.Group(); g.add(frame, front, back);
+  const card = {g, H, caption, video: null, mats: [[mv, 1], [mf, .95]]};
+  card.setAspect = a => {
+    for (const m of [front, back]) { m.geometry.dispose(); m.geometry = new THREE.PlaneGeometry(H*a, H); }
+    frame.geometry.dispose(); frame.geometry = new THREE.PlaneGeometry(H*a + .9, H + .9);
+  };
+  card.setAspect(16/9);
+  if (!src) {
+    mv.map = canvasTex(640, 360, (c, w, h) => {
+      const gr = c.createLinearGradient(0, 0, w, h); gr.addColorStop(0, '#5a1747'); gr.addColorStop(1, '#2a1260');
+      c.fillStyle = gr; c.fillRect(0, 0, w, h);
+      c.fillStyle = 'rgba(255,255,255,.9)'; c.beginPath(); c.moveTo(w/2-26, h/2-60); c.lineTo(w/2+34, h/2-30); c.lineTo(w/2-26, h/2); c.fill();
+      c.fillStyle = '#ffc2da'; c.font = '600 26px "Be Vietnam Pro",sans-serif'; c.textAlign = 'center';
+      c.fillText('Video timelapse #' + (index+1), w/2, h/2+50);
+      c.font = '20px "Be Vietnam Pro",sans-serif'; c.fillStyle = '#e8b8d0'; c.fillText('Thêm file vào thư mục videos/', w/2, h/2+84);
+    });
+    card.caption = 'Chỗ này sẽ là video của lớp';
+  } else if (/\.(jpe?g|png|webp|gif|avif)$/i.test(src)) {
+    mv.map = new THREE.TextureLoader().load(src, t => { t.colorSpace = THREE.SRGBColorSpace; card.setAspect(t.image.width/t.image.height); });
+  } else {
+    const v = document.createElement('video');
+    Object.assign(v, {src, muted: true, loop: true, playsInline: true, autoplay: true, crossOrigin: 'anonymous'});
+    v.addEventListener('loadedmetadata', () => card.setAspect(v.videoWidth/v.videoHeight));
+    v.play().catch(() => {});
+    mv.map = new THREE.VideoTexture(v); mv.map.colorSpace = THREE.SRGBColorSpace; card.video = v;
+  }
+  front.userData.card = card; cardFronts.push(front);
+  return card;
+}
+
+function addItem(obj, {mats, vy, card}) {
+  const it = {g: obj, mats, vy, card, r: rnd(24, 46), th: rnd(0, Math.PI*2), y: rnd(-YMAX, YMAX), w: .018, paused: false};
+  if (card) card.item = it;
+  scene.add(obj); items.push(it); return it;
+}
+const entries = CFG.media.length ? CFG.media : Array.from({length: 7}, () => null);
+const cards = entries.map((e, i) => {
+  const c = makeCard(e, i), it = addItem(c.g, {mats: c.mats, vy: rnd(.5, .9), card: c});
+  it.th = i/entries.length*Math.PI*2 + rnd(-.2, .2); it.r = rnd(26, 42); it.y = rnd(-22, 22); return c;
+});
+for (let i = 0; i < 38; i++) {
+  const s = textSprite(CFG.texts[i % CFG.texts.length], i % 9 === 0);
+  addItem(s, {mats: [[s.material, 1]], vy: rnd(.8, 2.2)});
+}
+
+/* ---------- chọn video: bay tới xem gần ---------- */
+const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
+let state = 'intro', focused = null, saved = null, down = null;
+renderer.domElement.addEventListener('pointerdown', e => down = {x: e.clientX, y: e.clientY});
+renderer.domElement.addEventListener('pointerup', e => {
+  if (!down || state !== 'gallery' || Math.hypot(e.clientX-down.x, e.clientY-down.y) > 6) return;
+  if (focused) return leaveCard();
+  ndc.set(e.clientX/innerWidth*2-1, -(e.clientY/innerHeight)*2+1);
+  ray.setFromCamera(ndc, camera);
+  const hit = ray.intersectObjects(cardFronts.filter(m => m.parent.visible), false)[0];
+  if (hit) focusCard(hit.object.userData.card);
+});
+addEventListener('keydown', e => { if (e.key === 'Escape' && focused) leaveCard(); });
+
+async function focusCard(c) {
+  focused = c; c.item.paused = true; controls.autoRotate = false;
+  saved = {pos: camera.position.clone(), target: controls.target.clone()};
+  hideUI('btnWish', 'hint'); $('cardText').textContent = c.caption || ''; showUI('card');
+  if (c.video) { c.video.muted = false; if (audio) audio.volume = .12; } // hạ nhạc nền để nghe tiếng video
+  const g = c.g, out = new THREE.Vector3(Math.sin(g.rotation.y), 0, Math.cos(g.rotation.y));
+  const d = c.H/.7/(2*Math.tan(THREE.MathUtils.degToRad(camera.fov/2)));
+  await flyTo(g.position.clone().addScaledVector(out, d), g.position.clone(), 1800);
+}
+async function leaveCard() {
+  if (!focused) return; const c = focused; focused = null; hideUI('card');
+  if (c.video) { c.video.muted = true; if (audio) audio.volume = .6; }
+  await flyTo(saved.pos, saved.target, 1800);
+  c.item.paused = false; controls.autoRotate = true; showUI('btnWish', 'hint');
+}
+$('cardClose').onclick = leaveCard;
+
+/* ---------- UI helpers ---------- */
+const showUI = (...ids) => ids.forEach(i => $(i).classList.remove('hide'));
+const hideUI = (...ids) => ids.forEach(i => $(i).classList.add('hide'));
+
+/* ---------- màn hình đầu → thư viện ---------- */
+let audio = null;
+$('enter').onclick = async () => {
+  $('intro').style.opacity = 0; setTimeout(() => $('intro').remove(), 1700);
+  if (CFG.music) {
+    audio = new Audio(CFG.music); audio.loop = true; audio.volume = .6; audio.play().catch(() => {});
+    $('sound').style.display = ''; showUI('sound');
+  }
+  cards.forEach(c => c.video?.play().catch(() => {}));
+  state = 'busy';
+  await flyTo(GALLERY.pos, GALLERY.target, 4200);
+  state = 'gallery'; showUI('brand', 'hint', 'btnWish');
+};
+$('sound').onclick = () => { if (!audio) return; audio.paused ? audio.play() : audio.pause(); $('sound').style.opacity = audio.paused ? .5 : 1; };
+
+/* ---------- màn hình trái tim ---------- */
+function typeInto(el, text, ms) {
+  el.textContent = ''; let i = 0;
+  return new Promise(res => { const id = setInterval(() => { el.textContent = text.slice(0, ++i); if (i >= text.length) { clearInterval(id); res(); } }, ms); });
+}
+$('btnWish').onclick = async () => {
+  if (state !== 'gallery') return; state = 'busy';
+  if (focused) await leaveCard();
+  hideUI('btnWish', 'hint', 'brand'); controls.autoRotate = false;
+  cards.forEach(c => c.video?.pause());
+  const portrait = innerWidth/innerHeight < 1;
+  const dist = portrait ? 62 : 40;
+  tween(1400, k => vis = 1-k);
+  const fly = flyTo(new THREE.Vector3(0, 3, dist), new THREE.Vector3(0, portrait ? 1 : -3, 0), 4200);
+  await tween(7500, k => U.uProg.value = k, {ease: linear, delay: 700});
+  await fly;
+  state = 'heart'; showUI('wish', 'btnBack'); controls.autoRotate = true; controls.autoRotateSpeed = .5;
+  $('wTitle').textContent = CFG.wish.title; $('wSign').textContent = '';
+  await typeInto($('wBody'), CFG.wish.body, 32);
+  $('wSign').textContent = CFG.wish.sign;
+};
+$('btnBack').onclick = async () => {
+  if (state !== 'heart') return; state = 'busy';
+  hideUI('wish', 'btnBack'); controls.autoRotate = false;
+  cards.forEach(c => c.video?.play().catch(() => {}));
+  tween(1800, k => vis = k, {delay: 2400});
+  const rev = tween(5000, k => U.uProg.value = 1-k, {ease: linear});
+  await flyTo(GALLERY.pos, GALLERY.target, 4000); await rev;
+  controls.autoRotate = true; controls.autoRotateSpeed = .35;
+  state = 'gallery'; showUI('btnWish', 'hint', 'brand');
+};
+
+/* ---------- vòng lặp ---------- */
+const clock = new THREE.Clock(), smooth = t => t*t*(3-2*t);
+let slow = .016;
+renderer.setAnimationLoop(() => {
+  const dt = Math.min(clock.getDelta(), .05), now = performance.now();
+  U.uTime.value = clock.elapsedTime;
+
+  for (let i = tweens.length-1; i >= 0; i--) {
+    const tw = tweens[i], k = Math.min(1, (now - tw.t0)/tw.ms);
+    if (k < 0 || now < tw.t0) continue;
+    tw.fn(tw.ease(k));
+    if (k >= 1) { tweens.splice(i, 1); tw.res(); }
+  }
+
+  for (const it of items) {
+    if (!it.paused) {
+      it.y += it.vy*dt; it.th += it.w*dt;
+      if (it.y > YMAX) { it.y = -YMAX; it.th = rnd(0, Math.PI*2); }
+    }
+    const x = Math.cos(it.th)*it.r, z = Math.sin(it.th)*it.r;
+    if (!it.paused) it.g.position.set(x, it.y, z);
+    if (it.card && !it.paused) it.g.rotation.y = Math.atan2(x, z);
+    const o = (it.paused ? 1 : smooth(THREE.MathUtils.clamp((YMAX-Math.abs(it.y))/8, 0, 1)))*vis;
+    for (const [m, b] of it.mats) m.opacity = o*b;
+    it.g.visible = o > .01;
+  }
+
+  const d = dustGeo.attributes.position.array;
+  for (let i = 0; i < DUST_N; i++) { d[i*3+1] += (.8 + (i%5)*.25)*dt; if (d[i*3+1] > 40) d[i*3+1] = -40; }
+  dustGeo.attributes.position.needsUpdate = true;
+  dustPts.material.opacity = .25 + .45*vis;
+
+  // tự giảm chất lượng nếu máy yếu: FPS thấp liên tục → tắt bloom
+  slow = slow*.95 + dt*.05;
+  if (bloom.enabled && slow > .045 && clock.elapsedTime > 5) bloom.enabled = false;
+
+  controls.update();
+  composer.render();
+});
+</script>
+</body>
+</html>
