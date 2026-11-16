@@ -35,8 +35,7 @@
   #btnWish{left:50%;bottom:28px;transform:translateX(-50%);font-size:17px;padding:15px 34px}
   #btnWish:hover{transform:translateX(-50%) translateY(-2px) scale(1.03)}
   #btnWish.hide{transform:translateX(-50%) translateY(12px)}
-  #btnBack{right:22px;bottom:26px}
-  #card{left:50%;bottom:28px;transform:translateX(-50%);display:flex;align-items:center;gap:16px;
+  #btnBack{right:22px;bottom:26px}  #card{left:50%;bottom:28px;transform:translateX(-50%);display:flex;align-items:center;gap:16px;
     background:rgba(20,8,30,.6);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:8px 8px 8px 24px}
   #card.hide{transform:translateX(-50%) translateY(12px)}
   #card span{font:600 22px "Dancing Script",cursive;color:var(--gold)}
@@ -48,7 +47,7 @@
   #wish h2{font:700 clamp(26px,4vw,40px) "Dancing Script",cursive;margin:0 0 10px;color:#ffb8d4;text-shadow:0 0 16px #ff3b7f}
   #wish p{margin:0;font-weight:300;font-size:clamp(14px,1.7vw,17px);line-height:1.75;min-height:7.5em}
   #wish .sign{margin-top:12px;font:600 22px "Dancing Script",cursive;color:var(--gold);min-height:1.4em}
-  @media(max-width:600px){#hint{display:none}#btnBack{right:50%;transform:translateX(50%);bottom:auto;top:70px}
+  @media(max-width:600px){#hint{display:none}#btnBack{left:16px;right:auto;bottom:auto;top:18px;padding:10px 16px;transform:none}
     #wish{bottom:2vh;padding:14px 16px 10px;max-height:40vh;overflow-y:auto}
     #wish h2{font-size:26px;margin-bottom:6px}
     #wish p{font-size:13px;line-height:1.6;min-height:0}
@@ -62,15 +61,14 @@
   <h1>20·11</h1>
   <p class="cls" id="cls"></p>
   <p>Tri ân thầy cô</p>
-  <button class="btn" id="enter">Bước vào ✦</button>
+  <button class="btn" id="enter">♪ Chạm để bắt đầu</button>
 </div>
 
 <div id="brand" class="ui hide">20/11 · Tri ân thầy cô<small id="brandSub"></small></div>
 <button id="sound" class="btn ghost ui hide" style="display:none">♪ Nhạc</button>
 <div id="hint" class="ui hide">Kéo chuột để xoay · Cuộn để zoom<br>Chạm vào video để bay tới xem</div>
 <button id="btnWish" class="btn ui hide">💌 Gửi lời chúc</button>
-<button id="btnBack" class="btn ghost ui hide">↩ Quay lại</button>
-<div id="card" class="ui hide"><span id="cardText"></span><button class="btn ghost" id="cardClose">✕ Đóng</button></div>
+<button id="btnBack" class="btn ghost ui hide">↩ Quay lại</button><div id="card" class="ui hide"><span id="cardText"></span><button class="btn ghost" id="cardClose">✕ Đóng</button></div>
 <div id="wish" class="ui hide"><h2 id="wTitle"></h2><p id="wBody"></p><div class="sign" id="wSign"></div></div>
 
 <script type="importmap">
@@ -359,19 +357,37 @@ const showUI = (...ids) => ids.forEach(i => $(i).classList.remove('hide'));
 const hideUI = (...ids) => ids.forEach(i => $(i).classList.add('hide'));
 
 /* ---------- màn hình đầu → thư viện ---------- */
+// Nhạc: thử phát ngay khi mở trang. Trình duyệt thường chặn tiếng khi chưa chạm → phát ở lần chạm đầu tiên, không cần nút riêng.
 let audio = null;
-$('enter').onclick = async () => {
+const unlockEv = ['pointerup', 'touchend', 'click', 'keydown'];
+let begun = false;
+function tryMusic(e) {
+  if (e?.target?.closest?.('#sound')) return; // nút bật/tắt nhạc tự xử lý
+  audio.play().then(() => {
+    unlockEv.forEach(ev => removeEventListener(ev, tryMusic, true));
+    begin(e ? 300 : 2200); // tự phát được → vào luôn; bị chặn → chờ lần chạm đầu rồi vào
+  }, () => {});            // bị chặn: màn hình đầu vẫn hiện, chạm bất kỳ đâu là phát
+}
+if (CFG.music) {
+  audio = new Audio(CFG.music); audio.preload = 'auto'; audio.loop = true; audio.volume = .6; // tải sẵn để chạm là có tiếng ngay
+  audio.onplay = () => $('sound').style.opacity = 1; audio.onpause = () => $('sound').style.opacity = .5;
+  $('sound').style.display = ''; showUI('sound');
+  unlockEv.forEach(ev => addEventListener(ev, tryMusic, true));
+  tryMusic();
+}
+$('sound').onclick = e => { e.stopPropagation(); if (!audio) return; audio.paused ? audio.play() : audio.pause(); };
+
+async function begin(delay = 0) {
+  if (begun) return; begun = true;
+  await sleep(delay);
   $('intro').style.opacity = 0; setTimeout(() => $('intro').remove(), 1700);
-  if (CFG.music) {
-    audio = new Audio(CFG.music); audio.loop = true; audio.volume = .6; audio.play().catch(() => {});
-    $('sound').style.display = ''; showUI('sound');
-  }
   cards.forEach(c => c.video?.play().catch(() => {}));
   state = 'busy';
   await flyTo(GALLERY.pos, GALLERY.target, 4200);
   state = 'gallery'; showUI('brand', 'hint', 'btnWish');
-};
-$('sound').onclick = () => { if (!audio) return; audio.paused ? audio.play() : audio.pause(); $('sound').style.opacity = audio.paused ? .5 : 1; };
+}
+$('enter').onclick = () => begin(); // phòng khi nhạc lỗi vẫn vào được
+if (!CFG.music) setTimeout(begin, 2200);
 
 /* ---------- màn hình trái tim ---------- */
 function typeInto(el, text, ms) {
