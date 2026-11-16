@@ -193,7 +193,7 @@ const dustPts = new THREE.Points(dustGeo, new THREE.PointsMaterial({size: .8, ma
 scene.add(dustPts);
 
 /* ---------- trái tim hạt: vòng quay → chảy xuống thành tim ---------- */
-const N = 9000, aRing = new Float32Array(N*3), aHeart = new Float32Array(N*3), aRand = new Float32Array(N*4), pos0 = new Float32Array(N*3);
+const N = 10000, aRing = new Float32Array(N*3), aHeart = new Float32Array(N*3), aRand = new Float32Array(N*4), pos0 = new Float32Array(N*3);
 const HS = 8.2; // kích thước tim
 function heartPoint(shell) { // tim 3D: (x²+9/4y²+z²-1)³ - x²z³ - 9/80y²z³ ≤ 0
   for (let i = 0; i < 20000; i++) { // giới hạn vòng lặp để không bao giờ treo trang
