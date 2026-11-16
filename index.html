@@ -48,7 +48,11 @@
   #wish h2{font:700 clamp(26px,4vw,40px) "Dancing Script",cursive;margin:0 0 10px;color:#ffb8d4;text-shadow:0 0 16px #ff3b7f}
   #wish p{margin:0;font-weight:300;font-size:clamp(14px,1.7vw,17px);line-height:1.75;min-height:7.5em}
   #wish .sign{margin-top:12px;font:600 22px "Dancing Script",cursive;color:var(--gold);min-height:1.4em}
-  @media(max-width:600px){#hint{display:none}#btnBack{right:50%;transform:translateX(50%);bottom:auto;top:70px}#wish{bottom:2vh;padding:18px 18px 14px}}
+  @media(max-width:600px){#hint{display:none}#btnBack{right:50%;transform:translateX(50%);bottom:auto;top:70px}
+    #wish{bottom:2vh;padding:14px 16px 10px;max-height:40vh;overflow-y:auto}
+    #wish h2{font-size:26px;margin-bottom:6px}
+    #wish p{font-size:13px;line-height:1.6;min-height:0}
+    #wish .sign{font-size:19px;margin-top:8px}}
 </style>
 </head>
 <body>
@@ -217,7 +221,7 @@ const particles = new THREE.Points(pg, new THREE.ShaderMaterial({
   vertexShader: `
     uniform float uTime, uProg, uPx;
     attribute vec3 aRing, aHeart; attribute vec4 aRand;
-    varying vec3 vCol;
+    varying vec3 vCol; varying float vE;
     vec2 rot(vec2 p, float a){ float c=cos(a), s=sin(a); return vec2(c*p.x-s*p.y, s*p.x+c*p.y); }
     void main(){
       float ang = aRing.y + uTime*aRand.z;                       // hạt chạy dọc viền tròn
@@ -233,14 +237,16 @@ const particles = new THREE.Points(pg, new THREE.ShaderMaterial({
       p += .16*e*vec3(sin(uTime*1.3+aRand.w*30.), sin(uTime*1.7+aRand.w*50.), cos(uTime*1.1+aRand.w*70.));
       vec4 mv = modelViewMatrix*vec4(p, 1.);
       gl_Position = projectionMatrix*mv;
-      gl_PointSize = clamp(aRand.y*uPx/-mv.z, 1., 10.);   // chặn hạt phình to khi camera lại gần (tránh overdraw)
+      vE = e;
+      // hạt nhỏ lại khi đã thành trái tim, nếu không 9000 hạt chồng nhau sẽ cháy thành cục trắng
+      gl_PointSize = clamp(aRand.y*uPx/-mv.z*mix(1., .38, e), 1., 10.);   // chặn hạt phình to khi camera lại gần
       vec3 c0 = mix(vec3(1.,.82,.5), vec3(1.,.55,.9), aRand.w);
       vec3 c1 = mix(vec3(1.,.12,.32), vec3(1.,.5,.72), aRand.w);
       vCol = mix(c0, c1, e);
     }`,
   fragmentShader: `
-    varying vec3 vCol;
-    void main(){ float d=length(gl_PointCoord-.5); if(d>.5) discard; gl_FragColor=vec4(vCol, pow(1.-d*2., 2.)*.4); }`,
+    varying vec3 vCol; varying float vE;
+    void main(){ float d=length(gl_PointCoord-.5); if(d>.5) discard; gl_FragColor=vec4(vCol, pow(1.-d*2., 2.)*.4*mix(1., .85, vE)); }`,
 }));
 particles.frustumCulled = false;
 scene.add(particles);
@@ -380,7 +386,8 @@ $('btnWish').onclick = async () => {
   const portrait = innerWidth/innerHeight < 1;
   const dist = portrait ? 62 : 40;
   tween(1400, k => vis = 1-k);
-  const fly = flyTo(new THREE.Vector3(0, 3, dist), new THREE.Vector3(0, portrait ? 1 : -3, 0), 4200);
+  // dịch tâm nhìn xuống để trái tim nằm nửa trên màn hình, chừa chỗ cho khung chữ ở dưới
+  const fly = flyTo(new THREE.Vector3(0, portrait ? -4 : 3, dist), new THREE.Vector3(0, portrait ? -13 : -4, 0), 4200);
   await tween(7500, k => U.uProg.value = k, {ease: linear, delay: 700});
   await fly;
   state = 'heart'; showUI('wish', 'btnBack'); controls.autoRotate = true; controls.autoRotateSpeed = .5;
