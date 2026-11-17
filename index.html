@@ -297,9 +297,11 @@ function makeCard(entry, index) {
     mv.map = new THREE.TextureLoader().load(src, t => { t.colorSpace = THREE.SRGBColorSpace; card.setAspect(t.image.width/t.image.height); });
   } else {
     const v = document.createElement('video');
-    Object.assign(v, {src, muted: true, loop: true, playsInline: true, autoplay: true, crossOrigin: 'anonymous'});
+    // phát tất cả; watchdogVideos() ở cuối file sẽ phát lại / tải lại video nào bị dừng hoặc đứng hình
+    Object.assign(v, {src, muted: true, defaultMuted: true, loop: true, playsInline: true, preload: 'auto', crossOrigin: 'anonymous'});
+    v.setAttribute('muted', ''); v.setAttribute('playsinline', '');
+    v.addEventListener('error', () => { card.err = true; }); // lỗi tải → watchdog tải lại
     v.addEventListener('loadedmetadata', () => card.setAspect(v.videoWidth/v.videoHeight));
-    v.play().catch(() => {});
     mv.map = new THREE.VideoTexture(v); mv.map.colorSpace = THREE.SRGBColorSpace; card.video = v;
   }
   front.userData.card = card; cardFronts.push(front);
@@ -381,7 +383,6 @@ async function begin(delay = 0) {
   if (begun) return; begun = true;
   await sleep(delay);
   $('intro').style.opacity = 0; setTimeout(() => $('intro').remove(), 1700);
-  cards.forEach(c => c.video?.play().catch(() => {}));
   state = 'busy';
   await flyTo(GALLERY.pos, GALLERY.target, 4200);
   state = 'gallery'; showUI('brand', 'hint', 'btnWish');
@@ -398,7 +399,6 @@ $('btnWish').onclick = async () => {
   if (state !== 'gallery') return; state = 'busy';
   if (focused) await leaveCard();
   hideUI('btnWish', 'hint', 'brand'); controls.autoRotate = false;
-  cards.forEach(c => c.video?.pause());
   const portrait = innerWidth/innerHeight < 1;
   const dist = portrait ? 62 : 40;
   tween(1400, k => vis = 1-k);
@@ -414,7 +414,6 @@ $('btnWish').onclick = async () => {
 $('btnBack').onclick = async () => {
   if (state !== 'heart') return; state = 'busy';
   hideUI('wish', 'btnBack'); controls.autoRotate = false;
-  cards.forEach(c => c.video?.play().catch(() => {}));
   tween(1800, k => vis = k, {delay: 2400});
   const rev = tween(5000, k => U.uProg.value = 1-k, {ease: linear});
   await flyTo(GALLERY.pos, GALLERY.target, 4000); await rev;
@@ -461,6 +460,32 @@ renderer.setAnimationLoop(() => {
   controls.update();
   composer.render();
 });
+
+/* ---------- giữ cho TẤT CẢ video luôn chạy ----------
+   Video đôi khi tự dừng / đứng hình (play() bị từ chối, mạng chậm, trình duyệt ngắt giải mã).
+   Mỗi 0,5s kiểm tra: dừng → phát lại; thời gian không nhích 3s → đẩy nhẹ; 6s → tải lại tại đúng vị trí.
+   Mỗi nhịp chỉ khởi động 1 video đang dừng để 6 video không giành băng thông cùng lúc. */
+const vidCards = cards.filter(c => c.video);
+setInterval(() => {
+  let started = false;
+  for (const c of vidCards) {
+    const v = c.video;
+    if (c.err) { c.err = false; v.load(); }  // lỗi tải → tải lại
+    if (vis < .3) { if (!v.paused) v.pause(); c.stuck = 0; continue; } // đang ở màn hình trái tim → nghỉ
+    if (v.paused) {
+      if (!started) { started = true; v.play().catch(() => {}); }
+      c.stuck = 0; continue;
+    }
+    c.stuck = Math.abs(v.currentTime - (c.lastT ?? -1)) < .01 ? (c.stuck || 0) + 1 : 0;
+    c.lastT = v.currentTime;
+    if (c.stuck === 8) { v.currentTime += .05; v.play().catch(() => {}); }   // kẹt ~4s → đẩy nhẹ
+    else if (c.stuck >= 20) {            // kẹt ~10s: không có dữ liệu → tải lại; có dữ liệu thì chỉ phát lại (tải lại sẽ chậm hơn)
+      c.stuck = 0;
+      if (v.readyState < 2) { const t = v.currentTime || 0; v.load(); v.currentTime = t; }
+      v.play().catch(() => {});
+    }
+  }
+}, 500);
 </script>
 </body>
 </html>
